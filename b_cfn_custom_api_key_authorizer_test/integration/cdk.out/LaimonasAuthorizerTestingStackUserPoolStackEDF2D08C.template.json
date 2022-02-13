@@ -1,0 +1,159 @@
+{
+  "Resources": {
+    "api_key6BA7E5F2": {
+      "Type": "AWS::Cognito::api_key",
+      "Properties": {
+        "AccountRecoverySetting": {
+          "RecoveryMechanisms": [
+            {
+              "Name": "admin_only",
+              "Priority": 1
+            }
+          ]
+        },
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": true
+        },
+        "AliasAttributes": [
+          "preferred_username"
+        ],
+        "AutoVerifiedAttributes": [
+          "email"
+        ],
+        "EmailVerificationMessage": "The verification code to your new account is {####}",
+        "EmailVerificationSubject": "Verify your new account",
+        "Schema": [
+          {
+            "Mutable": true,
+            "Name": "email",
+            "Required": false
+          },
+          {
+            "Mutable": true,
+            "Name": "preferred_username",
+            "Required": true
+          }
+        ],
+        "SmsVerificationMessage": "The verification code to your new account is {####}",
+        "UsernameConfiguration": {
+          "CaseSensitive": true
+        },
+        "api_keyName": "LaimonasAuthorizerapi_key",
+        "VerificationMessageTemplate": {
+          "DefaultEmailOption": "CONFIRM_WITH_CODE",
+          "EmailMessage": "The verification code to your new account is {####}",
+          "EmailSubject": "Verify your new account",
+          "SmsMessage": "The verification code to your new account is {####}"
+        }
+      },
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain",
+      "Metadata": {
+        "aws:cdk:path": "LaimonasAuthorizerTestingStack/api_keyStack/api_key/Resource"
+      }
+    },
+    "api_keyapi_keyClient40176907": {
+      "Type": "AWS::Cognito::api_keyClient",
+      "Properties": {
+        "api_keyId": {
+          "Ref": "api_key6BA7E5F2"
+        },
+        "AllowedOAuthFlowsapi_keyClient": false,
+        "ClientName": "LaimonasAuthorizerapi_keyClient",
+        "ExplicitAuthFlows": [
+          "ALLOW_USER_PASSWORD_AUTH",
+          "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+          "ALLOW_USER_SRP_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH"
+        ],
+        "SupportedIdentityProviders": [
+          "COGNITO"
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "LaimonasAuthorizerTestingStack/api_keyStack/api_key/api_keyClient/Resource"
+      }
+    },
+    "api_keyRegion9D7718F9": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Ref": "AWS::Region"
+        },
+        "Name": "LaimonasAuthorizerapi_keyRegion"
+      },
+      "Metadata": {
+        "aws:cdk:path": "LaimonasAuthorizerTestingStack/api_keyStack/api_keyRegion/Resource"
+      }
+    },
+    "api_keyId86CD4426": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Ref": "api_key6BA7E5F2"
+        },
+        "Name": "LaimonasAuthorizerapi_keyId"
+      },
+      "Metadata": {
+        "aws:cdk:path": "LaimonasAuthorizerTestingStack/api_keyStack/api_keyId/Resource"
+      }
+    },
+    "api_keyClientId7B9A01E7": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Value": {
+          "Ref": "api_keyapi_keyClient40176907"
+        },
+        "Name": "LaimonasAuthorizerapi_keyClientId"
+      },
+      "Metadata": {
+        "aws:cdk:path": "LaimonasAuthorizerTestingStack/api_keyStack/api_keyClientId/Resource"
+      }
+    }
+  },
+  "Outputs": {
+    "ExportsOutputRefapi_keyId86CD4426485B5A33": {
+      "Value": {
+        "Ref": "api_keyId86CD4426"
+      },
+      "Export": {
+        "Name": "LaimonasAuthorizerTestingStackapi_keyStackEDF2D08C:ExportsOutputRefapi_keyId86CD4426485B5A33"
+      }
+    },
+    "ExportsOutputRefapi_keyRegion9D7718F92EC5FABA": {
+      "Value": {
+        "Ref": "api_keyRegion9D7718F9"
+      },
+      "Export": {
+        "Name": "LaimonasAuthorizerTestingStackapi_keyStackEDF2D08C:ExportsOutputRefapi_keyRegion9D7718F92EC5FABA"
+      }
+    },
+    "ExportsOutputRefapi_keyClientId7B9A01E7898475FF": {
+      "Value": {
+        "Ref": "api_keyClientId7B9A01E7"
+      },
+      "Export": {
+        "Name": "LaimonasAuthorizerTestingStackapi_keyStackEDF2D08C:ExportsOutputRefapi_keyClientId7B9A01E7898475FF"
+      }
+    },
+    "ExportsOutputRefapi_key6BA7E5F296FD7236": {
+      "Value": {
+        "Ref": "api_key6BA7E5F2"
+      },
+      "Export": {
+        "Name": "LaimonasAuthorizerTestingStackapi_keyStackEDF2D08C:ExportsOutputRefapi_key6BA7E5F296FD7236"
+      }
+    },
+    "ExportsOutputRefapi_keyapi_keyClient40176907044A36CF": {
+      "Value": {
+        "Ref": "api_keyapi_keyClient40176907"
+      },
+      "Export": {
+        "Name": "LaimonasAuthorizerTestingStackapi_keyStackEDF2D08C:ExportsOutputRefapi_keyapi_keyClient40176907044A36CF"
+      }
+    }
+  }
+}
