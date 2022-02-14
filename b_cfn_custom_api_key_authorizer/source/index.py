@@ -10,8 +10,10 @@ def handler(event, context):
     print(f'Received event:\n{json.dumps(event)}')
 
     # Custom authorizer resource specifies header/ApiKey attribute:
-    # identity_source=['$request.header.ApiKey'].
-    api_key = event.get('headers', {}).get('ApiKey')
+    # identity_source=['$request.header.ApiKey', '$request.header.ApiSecret'].
+    # They are converted to lowercase by apigateway/lambda services.
+    api_key = event.get('headers', {}).get('apikey')
+    api_secret = event.get('headers', {}).get('apisecret')
 
     document = PolicyDocument(
         region=os.environ['AWS_REGION'],

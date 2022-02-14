@@ -49,11 +49,13 @@ class AuthorizedEndpointStack(Stack):
             lambda_function=self.api_endpoint_function
         )
 
+        self.path = 'dummy'
+
         self.route = CfnRoute(
             scope=self,
             id='DummyRoute',
             api_id=api.ref,
-            route_key=f'GET /dummy',
+            route_key=f'GET /{self.path}',
             authorization_type='CUSTOM',
             target=f'integrations/{self.integration.ref}',
             authorizer_id=authorizer.ref

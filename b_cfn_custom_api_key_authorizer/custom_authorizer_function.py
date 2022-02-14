@@ -3,6 +3,8 @@ from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.core import Duration, Stack
 from b_lambda_layer_common.layer import Layer
 
+from b_cfn_custom_api_key_authorizer_layer.authorizer_layer import AuthorizerLayer
+
 
 class AuthorizerFunction(Function):
     def __init__(
@@ -24,7 +26,10 @@ class AuthorizerFunction(Function):
                 Layer(
                     scope=scope,
                     name=f'{name}BCommonLayer',
-                    dependencies={}
+                ),
+                AuthorizerLayer(
+                    scope=scope,
+                    name=f'{name}BAuthLayer'
                 )
             ],
             log_retention=RetentionDays.ONE_MONTH,

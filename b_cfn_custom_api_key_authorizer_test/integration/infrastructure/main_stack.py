@@ -1,25 +1,26 @@
+import os
+
 from aws_cdk.aws_apigatewayv2 import CfnApi, CfnStage
 from aws_cdk.core import Construct
 from b_aws_testing_framework.tools.cdk_testing.testing_stack import TestingStack
 
-from b_cfn_custom_api_key_authorizer.config.user_pool_ssm_config import api_keySsmConfig
 from b_cfn_custom_api_key_authorizer.custom_authorizer import ApiKeyCustomAuthorizer
 from b_cfn_custom_api_key_authorizer_test.integration.infrastructure.authorized_endpoint_stack import AuthorizedEndpointStack
-from b_cfn_custom_api_key_authorizer_test.integration.infrastructure.user_pool_stack import api_keyStack
 
 
 class MainStack(TestingStack):
-    API_URL_KEY = 'ApiUrl'
-    API_ENDPOINT_KEY = 'ApiEndpoint'
-    USER_POOL_ID_KEY = 'api_keyId'
-    USER_POOL_CLIENT_ID_KEY = 'api_keyClientId'
+    # Key to resolve deployed API URL.
+    API_URL = 'ApiUrl'
+    # Key to resolve a dummy endpoint which is protected with custom api key authorizer.
+    DUMMY_API_ENDPOINT = 'DummyApiEndpoint'
+    # Access to API key database to manage keys.
+    API_KEY_DATABASE = 'ApiKeyDatabase'
+    API_KEY_DATABASE_REGION = 'ApiKeyDatabaseRegion'
 
     def __init__(self, scope: Construct) -> None:
         super().__init__(scope=scope)
 
         prefix = TestingStack.global_prefix()
-
-        self.user_pool_stack = api_keyStack(self)
 
         self.api = CfnApi(
             scope=self,
@@ -42,12 +43,6 @@ class MainStack(TestingStack):
             scope=self,
             name=f'{prefix}ApiKeyCustomAuthorizer',
             api=self.api,
-            # Dynamically resolve.
-            user_pool_config=api_keySsmConfig(
-                user_pool_id_ssm_key=self.user_pool_stack.ssm_pool_id.parameter_name,
-                user_pool_client_id_ssm_key=self.user_pool_stack.ssm_pool_client_id.parameter_name,
-                user_pool_region_ssm_key=self.user_pool_stack.ssm_pool_region.parameter_name,
-            )
         )
 
         self.stage: CfnStage = CfnStage(
@@ -59,8 +54,9 @@ class MainStack(TestingStack):
         )
 
         self.endpoint_stack = AuthorizedEndpointStack(self, self.api, self.authorizer)
+        self.dummy_endpoint = f'{self.api.attr_api_endpoint}/{self.stage.stage_name}/{self.endpoint_stack.path}'
 
-        self.add_output(self.API_URL_KEY, value=self.api.attr_api_endpoint)
-        self.add_output(self.API_ENDPOINT_KEY, value=f'{self.api.attr_api_endpoint}/{self.stage.stage_name}/dummy')
-        self.add_output(self.USER_POOL_ID_KEY, value=self.user_pool_stack.pool.user_pool_id)
-        self.add_output(self.USER_POOL_CLIENT_ID_KEY, value=self.user_pool_stack.client.user_pool_client_id)
+        self.add_output(self.API_URL, value=self.api.attr_api_endpoint)
+        self.add_output(self.DUMMY_API_ENDPOINT, value=self.dummy_endpoint)
+        self.add_output(self.API_KEY_DATABASE, value=self.authorizer.api_keys_database.table_name)
+        self.add_output(self.API_KEY_DATABASE_REGION, value=self.authorizer.api_keys_database.region)

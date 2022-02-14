@@ -25,11 +25,13 @@ setup(
     long_description_content_type='text/markdown',
     include_package_data=True,
     install_requires=[
-        'python-jose>=3.3.0',
+        # Other.
         'b-continuous-subprocess>=0.3.2,<1.0.0',
-        'b-lambda-layer-common>=2.0.0,<3.0.0',
-        'b-aws-cdk-parallel>=1.3.0,<2.0.0',
+        'b-lambda-layer-common>=2.3.3,<3.0.0',
+        'b-aws-cdk-parallel>=2.2.0,<3.0.0',
         'b-cfn-lambda-integration>=0.0.8,<1.0.0',
+
+        # AWS CDK.
         'aws_cdk.aws_apigatewayv2>=1.90.0',
         'aws_cdk.aws_lambda>=1.90.0',
         'aws-cdk.assets>=1.90.0',

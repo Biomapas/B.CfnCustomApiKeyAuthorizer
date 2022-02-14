@@ -3,8 +3,8 @@
   "pathMetadata": false,
   "versionReporting": false,
   "requireApproval": "never",
-  "toolkitStackName": "CfnCustomApiKeyAuthorizerToolkit",
-  "toolkitBucketName": "CfnCustomApiKeyAuthorizerBucket",
+  "toolkitStackName": "CustomApiKeyAuthorizerToolkit",
+  "toolkitBucketName": "CustomApiKeyAuthorizerBucket",
   "context": {
     "@aws-cdk/core:enableStackNameDuplicates": "true",
     "aws-cdk:enableDiffNoFail": "true",

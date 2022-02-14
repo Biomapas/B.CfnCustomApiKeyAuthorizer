@@ -1,33 +1,40 @@
+import boto3
 import urllib3
-from urllib3 import HTTPResponse
 
 from b_cfn_custom_api_key_authorizer_test.integration.infrastructure.main_stack import MainStack
 
 
-def test_authorizer_allow(access_token: str) -> None:
+def test_authorizer_allow() -> None:
     """
     Tests whether the authorizer allows the request to pass through, if the
-    access token is valid.
-
-    :param access_token: (Fixture) valid access token.
+    api key and api secret are valid.
 
     :return: No return.
     """
-    endpoint = MainStack.get_output(MainStack.API_ENDPOINT_KEY)
+    # Create an api key / api secret pair in the api keys database.
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table(MainStack.get_output(MainStack.API_KEY_DATABASE))
+    table.put_item(
+        Item={
+            'pk': 'API_KEY_abc123',
+            'secret': 'API_SECRET_abc123'
+        }
+    )
 
-    http = urllib3.PoolManager()
-
-    response: HTTPResponse = http.request(
+    response = urllib3.PoolManager().request(
         method='GET',
-        url=endpoint,
+        url=MainStack.get_output(MainStack.DUMMY_API_ENDPOINT),
         headers={
-            'Authorization': access_token
+            'ApiKey': 'API_KEY_abc123',
+            'ApiSecret': 'API_SECRET_abc123'
         },
     )
 
+    # Make sure response is successful.
     assert response.status == 200
 
     data = response.data
     data = data.decode()
+
     # Response from a dummy lambda function defined in the infrastructure main stack.
     assert data == 'Hello World!'

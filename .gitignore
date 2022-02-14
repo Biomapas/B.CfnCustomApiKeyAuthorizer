@@ -2,6 +2,9 @@
 # Created by https://www.gitignore.io/api/venv,dotenv,python,pycharm,windows,virtualenv
 # Edit at https://www.gitignore.io/?templates=venv,dotenv,python,pycharm,windows,virtualenv
 
+cdk.out
+venv
+
 ### dotenv ###
 .env
 .env.dev

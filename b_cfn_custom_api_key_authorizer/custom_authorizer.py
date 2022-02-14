@@ -25,12 +25,12 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
             If it is greater than 0, API Gateway will cache authorizer responses.
             The maximum value is 3600, or 1 hour.
         """
-        api_keys_database = ApiKeysDatabase(
+        self.api_keys_database = ApiKeysDatabase(
             scope=scope,
             table_name=f'{name}Database'
         )
 
-        lambda_function = AuthorizerFunction(
+        self.lambda_function = AuthorizerFunction(
             scope=scope,
             name=f'{name}Function',
         )
@@ -38,14 +38,14 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
         # These environment variables are necessary for a lambda function to create
         # a policy document to allow/deny access. Read more here:
         # https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-output.html
-        lambda_function.add_environment('AWS_ACCOUNT', scope.account)
-        lambda_function.add_environment('AWS_API_ID', api.ref)
+        self.lambda_function.add_environment('AWS_ACCOUNT', scope.account)
+        self.lambda_function.add_environment('AWS_API_ID', api.ref)
 
         # We also want the authorizer lambda function to be able to access
         # and manage api keys database.
-        lambda_function.add_environment('API_KEYS_DATABASE_NAME', api_keys_database.table_name)
-        lambda_function.add_environment('API_KEYS_DATABASE_REGION', api_keys_database.region)
-        lambda_function.add_to_role_policy(PolicyStatement(
+        self.lambda_function.add_environment('API_KEYS_DATABASE_NAME', self.api_keys_database.table_name)
+        self.lambda_function.add_environment('API_KEYS_DATABASE_REGION', self.api_keys_database.region)
+        self.lambda_function.add_to_role_policy(PolicyStatement(
             actions=[
                 'dynamodb:GetItem',
                 'dynamodb:Scan',
@@ -56,7 +56,7 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
                 'dynamodb:UpdateItem',
                 'dynamodb:BatchWriteItem'
             ],
-            resources=[api_keys_database.table_arn]
+            resources=[self.api_keys_database.table_arn]
         ))
 
         # Constructed by reading this documentation:
@@ -73,10 +73,11 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
                 f'arn:aws:apigateway:{scope.region}:'
                 f'lambda:path/2015-03-31/functions/arn:'
                 f'aws:lambda:{scope.region}:{scope.account}:'
-                f'function:{lambda_function.function_name}/invocations'
+                f'function:{self.lambda_function.function_name}/invocations'
             ),
             identity_source=[
-                '$request.header.ApiKey'
+                '$request.header.ApiKey',
+                '$request.header.ApiSecret',
             ],
         )
 
