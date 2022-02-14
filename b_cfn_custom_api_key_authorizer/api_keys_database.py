@@ -13,7 +13,7 @@ class ApiKeysDatabase(Table, ABC):
             scope=scope,
             id='ApiKeysDatabase',
             table_name=table_name,
-            partition_key=Attribute(name='pk', type=AttributeType.STRING),
+            partition_key=Attribute(name='ApiKey', type=AttributeType.STRING),
             removal_policy=RemovalPolicy.DESTROY,
             point_in_time_recovery=True,
             billing_mode=BillingMode.PAY_PER_REQUEST,

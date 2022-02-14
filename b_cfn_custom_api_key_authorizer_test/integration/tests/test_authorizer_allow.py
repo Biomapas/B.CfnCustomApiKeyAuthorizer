@@ -16,8 +16,8 @@ def test_authorizer_allow() -> None:
     table = dynamodb.Table(MainStack.get_output(MainStack.API_KEY_DATABASE))
     table.put_item(
         Item={
-            'pk': 'API_KEY_abc123',
-            'secret': 'API_SECRET_abc123'
+            'ApiKey': 'API_KEY_abc123',
+            'ApiSecret': 'API_SECRET_abc123'
         }
     )
 

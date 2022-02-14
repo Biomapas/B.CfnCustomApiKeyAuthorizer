@@ -24,7 +24,7 @@ def handler(event, context):
 
     # Verify the authorization token.
     try:
-        ApiKeyVerification(api_key).verify()
+        ApiKeyVerification(api_key, api_secret).verify()
         # Authorization was successful. Return "Allow".
         return document.create_policy_statement(allow=True)
     except AuthException as ex:
