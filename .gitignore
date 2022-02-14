@@ -3,6 +3,7 @@
 # Edit at https://www.gitignore.io/?templates=venv,dotenv,python,pycharm,windows,virtualenv
 
 cdk.out
+**cdk.out
 venv
 
 ### dotenv ###
