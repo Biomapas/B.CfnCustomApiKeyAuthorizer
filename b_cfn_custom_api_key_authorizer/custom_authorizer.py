@@ -44,6 +44,7 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
         # We also want the authorizer lambda function to be able to access
         # and manage api keys database.
         lambda_function.add_environment('API_KEYS_DATABASE_NAME', api_keys_database.table_name)
+        lambda_function.add_environment('API_KEYS_DATABASE_REGION', api_keys_database.region)
         lambda_function.add_to_role_policy(PolicyStatement(
             actions=[
                 'dynamodb:GetItem',

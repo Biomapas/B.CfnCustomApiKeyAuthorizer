@@ -10,11 +10,13 @@ class PolicyDocument:
             self,
             region: str,
             account_id: str,
-            api_id: str
+            api_id: str,
+            api_key: str
     ) -> None:
         self.region = region
         self.account_id = account_id
         self.api_id = api_id
+        self.api_key = api_key
 
     def create_policy_statement(
             self,
@@ -22,6 +24,9 @@ class PolicyDocument:
     ) -> Dict[str, Any]:
         return {
             'principalId': 'user',
+            'context': {
+                'ApiKey': self.api_key
+            },
             'policyDocument': {
                 'Version': '2012-10-17',
                 'Statement': [
