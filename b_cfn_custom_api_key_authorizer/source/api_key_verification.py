@@ -15,12 +15,16 @@ class ApiKeyVerification:
     def __init__(self, api_key: str, api_secret: str):
         self.__api_key = api_key
         self.__api_secret = api_secret
+        self.__api_key_database_name = os.environ.get('API_KEYS_DATABASE_NAME')
 
         if not api_key:
             raise AuthException('Api Key not provided.')
 
         if not api_secret:
             raise AuthException('Api Secret not provided.')
+
+        if not self.__api_key_database_name:
+            raise ValueError('Database not configured.')
 
     def verify(self) -> None:
         """
@@ -31,7 +35,7 @@ class ApiKeyVerification:
         """
         try:
             dynamodb = boto3.resource('dynamodb')
-            table = dynamodb.Table(os.environ['API_KEYS_DATABASE_NAME'])
+            table = dynamodb.Table(self.__api_key_database_name)
             data = table.get_item(Key={'ApiKey': self.__api_key})
         except ClientError:
             raise AuthException('Could not retrieve api key from database.')
