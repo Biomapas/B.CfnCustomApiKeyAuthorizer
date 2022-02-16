@@ -3,7 +3,8 @@ from aws_cdk.aws_iam import PolicyStatement
 from aws_cdk.core import Stack
 
 from b_cfn_custom_api_key_authorizer.api_keys_database import ApiKeysDatabase
-from b_cfn_custom_api_key_authorizer.custom_authorizer_function import AuthorizerFunction
+from b_cfn_custom_api_key_authorizer.api_keys_generator_function.function import ApiKeysGeneratorFunction
+from b_cfn_custom_api_key_authorizer.authorizer_function.function import AuthorizerFunction
 
 
 class ApiKeyCustomAuthorizer(CfnAuthorizer):
@@ -30,23 +31,38 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
             table_name=f'{name}Database'
         )
 
-        self.lambda_function = AuthorizerFunction(
+        # Authorizes requests.
+        self.authorizer_function = AuthorizerFunction(
             scope=scope,
             name=f'{name}Function',
+        )
+
+        # Generates api keys.
+        self.generator_function = ApiKeysGeneratorFunction(
+            scope=scope,
+            name=f'{name}GeneratorFunction',
         )
 
         # These environment variables are necessary for a lambda function to create
         # a policy document to allow/deny access. Read more here:
         # https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-output.html
-        self.lambda_function.add_environment('AWS_ACCOUNT', scope.account)
-        self.lambda_function.add_environment('AWS_API_ID', api.ref)
+        self.authorizer_function.add_environment('AWS_ACCOUNT', scope.account)
+        self.authorizer_function.add_environment('AWS_API_ID', api.ref)
 
-        # We also want the authorizer lambda function to be able to access
-        # and manage api keys database.
-        self.lambda_function.add_environment('API_KEYS_DATABASE_NAME', self.api_keys_database.table_name)
-        self.lambda_function.add_to_role_policy(PolicyStatement(
+        # We also want the authorizer lambda function to be able to access and read api keys database.
+        self.authorizer_function.add_environment('API_KEYS_DATABASE_NAME', self.api_keys_database.table_name)
+        self.authorizer_function.add_to_role_policy(PolicyStatement(
             actions=[
                 'dynamodb:GetItem',
+            ],
+            resources=[self.api_keys_database.table_arn]
+        ))
+
+        # We also want the generator lambda function to be able to access and write api keys to database.
+        self.generator_function.add_environment('API_KEYS_DATABASE_NAME', self.api_keys_database.table_name)
+        self.generator_function.add_to_role_policy(PolicyStatement(
+            actions=[
+                'dynamodb:PutItem',
             ],
             resources=[self.api_keys_database.table_arn]
         ))
@@ -65,7 +81,7 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
                 f'arn:aws:apigateway:{scope.region}:'
                 f'lambda:path/2015-03-31/functions/arn:'
                 f'aws:lambda:{scope.region}:{scope.account}:'
-                f'function:{self.lambda_function.function_name}/invocations'
+                f'function:{self.authorizer_function.function_name}/invocations'
             ),
             identity_source=[
                 '$request.header.ApiKey',

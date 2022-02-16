@@ -107,26 +107,40 @@ route = CfnRoute(
 )
 ```
 
-Once your infrastructure is deployed, try calling your api endpoint.
-You will get "Unauthorized" error.
+Once your infrastructure is deployed, try calling your api endpoint. You will get "Unauthorized" error.
 
 ```python
 import urllib3
 
 response = urllib3.PoolManager().request(
-        method='GET',
-        url='https://your-api-url/dummy/endpoint',
-        headers={},
-    )
+    method='GET',
+    url='https://your-api-url/dummy/endpoint',
+    headers={},
+)
 
->>> response.status 
->>> 403
+>>> response.status
+>>> 401
 ```
 
-Add `ApiKey` and `ApiSecret` to DynamoDB table (which was created
-with the new authorizer resource.) It should look something like this:
+Create `ApiKey` and `ApiSecret` by invoking a dedicated api keys generator lambda function:
 
-![DynamoDbTableItems](assets/dynamodb_table_items.png)
+```python
+# Your supplied name for the "ApiKeyCustomAuthorizer".
+authorizer_name = 'MyCoolAuthorizer'
+# Created generator lambda function name.
+function_name = 'GeneratorFunction'
+# Full function name is a combination of both.
+function_name = authorizer_name + function_name
+
+response = boto3.client('lambda').invoke(
+    FunctionName=function_name,
+    InvocationType='RequestResponse',
+)
+
+response = json.loads(response['Payload'].read())
+api_key = response['ApiKey']
+api_secret = response['ApiSecret']
+```
 
 Now try calling the same api with api keys:
 
@@ -134,21 +148,21 @@ Now try calling the same api with api keys:
 import urllib3
 
 response = urllib3.PoolManager().request(
-        method='GET',
-        url='https://your-api-url/dummy/endpoint',
-        headers={
-            'ApiKey': 'API_KEY_abc123',
-            'ApiSecret': 'API_SECRET_abc123'
-        },
-    )
+    method='GET',
+    url='https://your-api-url/dummy/endpoint',
+    headers={
+        'ApiKey': api_key,
+        'ApiSecret': api_secret
+    },
+)
 
->>> response.status 
+>>> response.status
 >>> 200
 ```
 
 ### Testing
 
-This package has integration tests based on ** pytest **. To run tests simply run:
+This package has integration tests based on **pytest**. To run tests simply run:
 
 ```
 

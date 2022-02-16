@@ -1,3 +1,5 @@
+import json
+
 import boto3
 import urllib3
 
@@ -47,20 +49,20 @@ def test_authorizer_with_invalid_key_secret() -> None:
     :return: No return.
     """
     # Create an api key / api secret pair in the api keys database.
-    dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table(MainStack.get_output(MainStack.API_KEY_DATABASE))
-    table.put_item(
-        Item={
-            'ApiKey': 'API_KEY_abc123',
-            'ApiSecret': 'API_SECRET_abc123'
-        }
+    response = boto3.client('lambda').invoke(
+        FunctionName=MainStack.get_output(MainStack.API_KEYS_GENERATOR_FUNCTION),
+        InvocationType='RequestResponse',
     )
+
+    response = json.loads(response['Payload'].read())
+    api_key = response['ApiKey']
+    api_secret = response['ApiSecret']
 
     response = urllib3.PoolManager().request(
         method='GET',
         url=MainStack.get_output(MainStack.DUMMY_API_ENDPOINT),
         headers={
-            'ApiKey': 'API_KEY_abc123',
+            'ApiKey': api_key,
             'ApiSecret': '123'
         },
     )
@@ -72,7 +74,7 @@ def test_authorizer_with_invalid_key_secret() -> None:
         url=MainStack.get_output(MainStack.DUMMY_API_ENDPOINT),
         headers={
             'ApiKey': '123',
-            'ApiSecret': 'API_SECRET_abc123'
+            'ApiSecret': api_secret
         },
     )
 
