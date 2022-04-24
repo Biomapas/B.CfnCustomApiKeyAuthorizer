@@ -1,9 +1,34 @@
-import json
-
-import boto3
 import urllib3
 
 from b_cfn_custom_api_key_authorizer_test.integration.infrastructure.main_stack import MainStack
+
+
+def test_FUNCTION_authorizer_WITH_valid_credentials_EXPECT_request_allowed_to_pass(api_keys) -> None:
+    """
+    Tests whether the authorizer allows the request to pass through, if the
+    api key and api secret are valid.
+
+    :return: No return.
+    """
+    api_key, api_secret = api_keys
+
+    response = urllib3.PoolManager().request(
+        method='GET',
+        url=MainStack.get_output(MainStack.API_ENDPOINT),
+        headers={
+            'ApiKey': api_key,
+            'ApiSecret': api_secret
+        },
+    )
+
+    # Make sure response is successful.
+    assert response.status == 200
+
+    data = response.data
+    data = data.decode()
+
+    # Response from a dummy lambda function defined in the infrastructure main stack.
+    assert data == 'Hello World!'
 
 
 def test_authorizer_with_no_key_secret() -> None:
@@ -15,7 +40,7 @@ def test_authorizer_with_no_key_secret() -> None:
     """
     response = urllib3.PoolManager().request(
         method='GET',
-        url=MainStack.get_output(MainStack.DUMMY_API_ENDPOINT),
+        url=MainStack.get_output(MainStack.API_ENDPOINT),
         headers={},
     )
 
@@ -31,7 +56,7 @@ def test_authorizer_with_non_existent_api_key_secret() -> None:
     """
     response = urllib3.PoolManager().request(
         method='GET',
-        url=MainStack.get_output(MainStack.DUMMY_API_ENDPOINT),
+        url=MainStack.get_output(MainStack.API_ENDPOINT),
         headers={
             'ApiKey': '123',
             'ApiSecret': '123'
@@ -41,26 +66,18 @@ def test_authorizer_with_non_existent_api_key_secret() -> None:
     assert response.status == 403
 
 
-def test_authorizer_with_invalid_key_secret() -> None:
+def test_authorizer_with_invalid_key_secret(api_keys) -> None:
     """
     Tests whether the authorizer denies the request to pass through, if the
     api key and api secret are invalid.
 
     :return: No return.
     """
-    # Create an api key / api secret pair in the api keys database.
-    response = boto3.client('lambda').invoke(
-        FunctionName=MainStack.get_output(MainStack.API_KEYS_GENERATOR_FUNCTION),
-        InvocationType='RequestResponse',
-    )
-
-    response = json.loads(response['Payload'].read())
-    api_key = response['ApiKey']
-    api_secret = response['ApiSecret']
+    api_key, api_secret = api_keys
 
     response = urllib3.PoolManager().request(
         method='GET',
-        url=MainStack.get_output(MainStack.DUMMY_API_ENDPOINT),
+        url=MainStack.get_output(MainStack.API_ENDPOINT),
         headers={
             'ApiKey': api_key,
             'ApiSecret': '123'
@@ -71,7 +88,7 @@ def test_authorizer_with_invalid_key_secret() -> None:
 
     response = urllib3.PoolManager().request(
         method='GET',
-        url=MainStack.get_output(MainStack.DUMMY_API_ENDPOINT),
+        url=MainStack.get_output(MainStack.API_ENDPOINT),
         headers={
             'ApiKey': '123',
             'ApiSecret': api_secret

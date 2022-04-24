@@ -1,13 +1,23 @@
 import json
+import logging
 import os
 
+# These imports come from a layer.
+from api_keys_verification import ApiKeysVerification
 from auth_exception import AuthException
+
 from policy_document import PolicyDocument
-from api_key_verification import ApiKeyVerification
+
+# Allow extensive logging even with other file and other layer levels.
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+for handler in root_logger.handlers:
+    handler.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def handler(event, context):
-    print(f'Received event:\n{json.dumps(event)}')
+    logger.info(f'Received event:\n{json.dumps(event)}.')
 
     # Custom authorizer resource specifies header/ApiKey attribute:
     # identity_source=['$request.header.ApiKey', '$request.header.ApiSecret'].
@@ -22,13 +32,16 @@ def handler(event, context):
         api_key=api_key
     )
 
+    logger.info('Attempting to verify api keys...')
+
     # Verify the authorization token.
     try:
-        ApiKeyVerification(api_key, api_secret).verify()
+        ApiKeysVerification(api_key, api_secret).verify()
+        logger.info(f'Authentication succeeded for api key: {api_key}.')
         # Authorization was successful. Return "Allow".
         return document.create_policy_statement(allow=True)
     except AuthException as ex:
         # Log the error.
-        print(ex)
+        logger.info(f'Authentication failed for api key: {api_key}. Message: {repr(ex)}.')
         # Authorization has failed. Return "Deny".
         return document.create_policy_statement(allow=False)

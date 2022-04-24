@@ -1,17 +1,20 @@
 from aws_cdk.aws_apigatewayv2 import CfnAuthorizer, CfnApi
-from aws_cdk.aws_iam import PolicyStatement
 from aws_cdk.core import Stack
 
 from b_cfn_custom_api_key_authorizer.api_keys_database import ApiKeysDatabase
-from b_cfn_custom_api_key_authorizer.api_keys_generator_function.function import ApiKeysGeneratorFunction
-from b_cfn_custom_api_key_authorizer.authorizer_function.function import AuthorizerFunction
+from b_cfn_custom_api_key_authorizer.functions.authorizer.function import AuthorizerFunction
+from b_cfn_custom_api_key_authorizer.functions.deleter.function import DeleterFunction
+from b_cfn_custom_api_key_authorizer.functions.exists.function import ExistsFunction
+from b_cfn_custom_api_key_authorizer.functions.generator.function import GeneratorFunction
+from b_cfn_custom_api_key_authorizer.functions.validator.function import ValidatorFunction
+from b_cfn_custom_api_key_authorizer_layer.authorizer_layer import AuthorizerLayer
 
 
 class ApiKeyCustomAuthorizer(CfnAuthorizer):
     def __init__(
             self,
             scope: Stack,
-            name: str,
+            resource_name_prefix: str,
             api: CfnApi,
             cache_ttl: int = 60
     ) -> None:
@@ -19,7 +22,10 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
         Constructor.
 
         :param scope: CloudFormation stack.
-        :param name: Name of the custom authorizer e.g. "MyCoolAuthorizer".
+        :param resource_name_prefix: Prefix string for all of the resources to be created.
+            For example, if your prefix is "MyCoolProject", then the created api keys database
+            will have a name of "MyCoolProjectApiKeysDatabase", api keys generator function
+            will have a name of "MyCoolProjectApiKeysGeneratorFunction", and so on...
         :param api: Parent API for which we are creating the authorizer.
         :param cache_ttl: The TTL in seconds of cached authorizer results.
             If it equals 0, authorization caching is disabled.
@@ -28,51 +34,54 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
         """
         self.api_keys_database = ApiKeysDatabase(
             scope=scope,
-            table_name=f'{name}Database'
+            table_name=f'{resource_name_prefix}ApiKeysDatabase'
+        )
+
+        authorizer_layer = AuthorizerLayer(scope)
+
+        base_kwargs = dict(
+            scope=scope,
+            api_keys_database=self.api_keys_database,
+            authorizer_layer=authorizer_layer
         )
 
         # Authorizes requests.
         self.authorizer_function = AuthorizerFunction(
-            scope=scope,
-            name=f'{name}Function',
+            **base_kwargs,
+            name=f'{resource_name_prefix}ApiKeysAuthorizerFunction',
+            parent_api=api,
+        )
+
+        # Deletes api keys.
+        self.deleter_function = DeleterFunction(
+            **base_kwargs,
+            name=f'{resource_name_prefix}ApiKeysDeleterFunction',
+        )
+
+        # Checks whether api keys exist.
+        self.exists_function = ExistsFunction(
+            **base_kwargs,
+            name=f'{resource_name_prefix}ApiKeysExistsFunction',
         )
 
         # Generates api keys.
-        self.generator_function = ApiKeysGeneratorFunction(
-            scope=scope,
-            name=f'{name}GeneratorFunction',
+        self.generator_function = GeneratorFunction(
+            **base_kwargs,
+            name=f'{resource_name_prefix}ApiKeysGeneratorFunction',
         )
 
-        # These environment variables are necessary for a lambda function to create
-        # a policy document to allow/deny access. Read more here:
-        # https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-output.html
-        self.authorizer_function.add_environment('AWS_ACCOUNT', scope.account)
-        self.authorizer_function.add_environment('AWS_API_ID', api.ref)
-
-        # We also want the authorizer lambda function to be able to access and read api keys database.
-        self.authorizer_function.add_environment('API_KEYS_DATABASE_NAME', self.api_keys_database.table_name)
-        self.authorizer_function.add_to_role_policy(PolicyStatement(
-            actions=[
-                'dynamodb:GetItem',
-            ],
-            resources=[self.api_keys_database.table_arn]
-        ))
-
-        # We also want the generator lambda function to be able to access and write api keys to database.
-        self.generator_function.add_environment('API_KEYS_DATABASE_NAME', self.api_keys_database.table_name)
-        self.generator_function.add_to_role_policy(PolicyStatement(
-            actions=[
-                'dynamodb:PutItem',
-            ],
-            resources=[self.api_keys_database.table_arn]
-        ))
+        # Validates api keys.
+        self.validator_function = ValidatorFunction(
+            **base_kwargs,
+            name=f'{resource_name_prefix}ApiKeysValidatorFunction',
+        )
 
         # Constructed by reading this documentation:
         # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigatewayv2-authorizer.html
         super().__init__(
             scope=scope,
             id='ApiKeysCustomAuthorizer',
-            name=name,
+            name=f'{resource_name_prefix}ApiKeysCustomAuthorizer',
             api_id=api.ref,
             authorizer_payload_format_version='2.0',
             authorizer_result_ttl_in_seconds=cache_ttl,

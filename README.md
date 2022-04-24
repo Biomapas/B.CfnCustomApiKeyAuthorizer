@@ -2,17 +2,26 @@
 
 ![Pipeline](https://github.com/Biomapas/B.CfnCustomApiKeyAuthorizer/workflows/Pipeline/badge.svg?branch=master)
 
-An AWS CDK resource that enables protection of your public APIs by using Api Keys.
+An AWS CDK resource that enables protection of your public APIs by 
+using Api Keys (ApiKey and Secret).
 
 ### Description
 
-This custom authorizer enables Api Key functionality
-(just like in ApiGateway V1
+This custom authorizer enables Api Key functionality 
+(something similar to ApiGateway V1 version: https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-setup-api-key-with-console.html)
 
-- https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-setup-api-key-with-console.html)
-  for APIs that are created via ApiGateway V2 (originally ApiGateway V2 does not have Api Key functionality
-  out-of-the-box). If you want to protect your API by generating a secret key and giving only for the intended clients -
-  this library is just for you.
+APIs created via ApiGateway V2 do not have Api Key authorization functionality out-of-the-box. 
+If you want to protect your V2 API by generating a secret key and giving only for the 
+intended clients - this library is just for you. This library allows you to protect you
+ApiGatewayV2-based endpoints with a combination of ApiKey and ApiSecret. Refer to usages & examples 
+to understand how to use this library. 
+
+The authorizer library exposes these lambda functions that can be called directly:
+- `authorizer` - _ApiKeysAuthorizerFunction_ - used by a custom (this) authorizer that is attached to your API.
+- `deleter` - _ApiKeysDeleterFunction_ - allows revoking access to your API i.e. deletes api keys.
+- `exists` - _ApiKeysExistsFunction_ - allows you to check whether a given API key exists in the database.
+- `generator` - _ApiKeysGeneratorFunction_ - generates api key and api secret pair and saves in an internal database.
+- `validator` - _ApiKeysValidatorFunction_ - validates given api key and api secret against the ones in the database.
 
 ### Remarks
 
@@ -86,7 +95,7 @@ from b_cfn_custom_api_key_authorizer.custom_authorizer import ApiKeyCustomAuthor
 
 authorizer = ApiKeyCustomAuthorizer(
     scope=Stack(...),
-    name='MyCoolAuthorizer',
+    resource_name_prefix='MyCool',
     api=api,
 )
 ```
@@ -125,12 +134,12 @@ response = urllib3.PoolManager().request(
 Create `ApiKey` and `ApiSecret` by invoking a dedicated api keys generator lambda function:
 
 ```python
-# Your supplied name for the "ApiKeyCustomAuthorizer".
-authorizer_name = 'MyCoolAuthorizer'
+# Your supplied prefix for the infrastrucutre.
+resource_name_prefix = 'MyCool'
 # Created generator lambda function name.
-function_name = 'GeneratorFunction'
+function_name = 'ApiKeysGeneratorFunction'
 # Full function name is a combination of both.
-function_name = authorizer_name + function_name
+function_name = resource_name_prefix + function_name
 
 response = boto3.client('lambda').invoke(
     FunctionName=function_name,
@@ -158,6 +167,90 @@ response = urllib3.PoolManager().request(
 
 >>> response.status
 >>> 200
+```
+
+#### Exposed lambda functions
+
+The authorizer exposes these lambda functions that can be called directly:
+- `authorizer` - ApiKeysAuthorizerFunction
+  
+```python
+response = boto3.client('lambda').invoke(
+    FunctionName=prefix + 'ApiKeysAuthorizerFunction',
+    InvocationType='RequestResponse',
+    Payload=json.dumps({
+        'ApiKey': '123',
+        'ApiSecret': '123'
+    }).encode()
+)
+
+response = json.loads(response['Payload'].read())
+
+# This will contain a dictionary of IAM based 
+# permission either to "allow" or "deny" the request.
+print(response)
+```
+
+- `deleter` - ApiKeysDeleterFunction
+  
+```python
+# This does not produce a response.
+boto3.client('lambda').invoke(
+    FunctionName=prefix + 'ApiKeysDeleterFunction',
+    InvocationType='RequestResponse',
+    Payload=json.dumps({
+        'ApiKey': '123',
+    }).encode()
+)
+```
+
+- `exists` - ApiKeysExistsFunction
+  
+```python
+response = boto3.client('lambda').invoke(
+    FunctionName=prefix + 'ApiKeysExistsFunction',
+    InvocationType='RequestResponse',
+    Payload=json.dumps({
+        'ApiKey': '123',
+    }).encode()
+)
+
+response = json.loads(response['Payload'].read())
+
+# Check whether your ApiKey/Secret exists in the database.
+assert response['Exists'] is True
+```
+
+- `generator` - ApiKeysGeneratorFunction
+  
+```python
+response = boto3.client('lambda').invoke(
+    FunctionName=prefix + 'ApiKeysGeneratorFunction',
+    InvocationType='RequestResponse',
+)
+
+response = json.loads(response['Payload'].read())
+
+api_key = response['ApiKey']
+api_secret = response['ApiSecret']
+```
+
+- `validator` - ApiKeysValidatorFunction
+
+```python
+response = boto3.client('lambda').invoke(
+    FunctionName=prefix + 'ApiKeysValidatorFunction',
+    InvocationType='RequestResponse',
+    Payload=json.dumps({
+        'ApiKey': '123',
+        'ApiSecret': '123',
+    }).encode()
+)
+
+response = json.loads(response['Payload'].read())
+
+# Check whether your ApiKey/Secret is valid.
+assert response['Valid'] is True
 ```
 
 ### Testing
