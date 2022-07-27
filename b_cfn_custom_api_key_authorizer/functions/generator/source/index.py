@@ -43,6 +43,6 @@ def generate_api_key() -> str:
 
 
 def generate_api_secret() -> str:
-    simple_punctuation = '!@#$%^&*()_+'
+    simple_punctuation = '!@#%^&*()_+'
     space = string.ascii_letters + string.digits + simple_punctuation
     return ''.join(random.choices(space, k=30))
