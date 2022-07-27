@@ -1,6 +1,11 @@
 # Release history
 
+### 2.0.1
+
+* Dollar sign excluded from API secret.
+
 ### 2.0.0
+
 * Restructured project.
 * All lambda functions are under `functions` directory.
 * Add `deleter` function to revoke api keys.
@@ -10,23 +15,27 @@
 * Move authentication checking logic to a lambda layer.
 * Add more lambda-level logging.
 * Add more integrations tests (total 11 as of now).
-* **Very important security improvement** - api secrets are now hashed, to avoid 
+* **Very important security improvement** - api secrets are now hashed, to avoid
   leaks if the database is pawned. This is a standard password-level storage security.
-* Greatly improve documentation.  
+* Greatly improve documentation.
 
 ### 1.1.0
-* Create a dedicated lambda function to generate 
-  api keys. You should not interact with the database directly. 
-  
+
+* Create a dedicated lambda function to generate
+  api keys. You should not interact with the database directly.
+
 ### 1.0.0
+
 * Prod-ready version.
 * Added documentation.
 * Added more tests.
 * Some code improvements.
 
 ### 0.1.0
+
 * Initial testing done. Authorizer works.
 * Need more tests and edge case handling before promoting to 1.0.0.
 
 ### 0.0.1
+
 * Initial build.
