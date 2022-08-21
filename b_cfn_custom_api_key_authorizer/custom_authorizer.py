@@ -1,7 +1,11 @@
+from typing import Optional
+
 from aws_cdk.aws_apigatewayv2 import CfnAuthorizer, CfnApi
+from aws_cdk.aws_dynamodb import Table
 from aws_cdk.core import Stack
 
 from b_cfn_custom_api_key_authorizer.api_keys_database import ApiKeysDatabase
+from b_cfn_custom_api_key_authorizer.authorization_type import AuthorizationType
 from b_cfn_custom_api_key_authorizer.functions.authorizer.function import AuthorizerFunction
 from b_cfn_custom_api_key_authorizer.functions.deleter.function import DeleterFunction
 from b_cfn_custom_api_key_authorizer.functions.exists.function import ExistsFunction
@@ -16,7 +20,9 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
             scope: Stack,
             resource_name_prefix: str,
             api: CfnApi,
-            cache_ttl: int = 60
+            cache_ttl: int = 60,
+            authorization_type: AuthorizationType = AuthorizationType.API_KEY_AND_SECRET_HEADERS,
+            custom_api_keys_database: Optional[Table] = None
     ) -> None:
         """
         Constructor.
@@ -31,8 +37,10 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
             If it equals 0, authorization caching is disabled.
             If it is greater than 0, API Gateway will cache authorizer responses.
             The maximum value is 3600, or 1 hour.
+        :param authorization_type: Determine which header parameters will be used for authorization.
+        :param custom_api_keys_database: Custom DynamoDb table to store your api keys and secrets.
         """
-        self.api_keys_database = ApiKeysDatabase(
+        self.api_keys_database = custom_api_keys_database or ApiKeysDatabase(
             scope=scope,
             table_name=f'{resource_name_prefix}ApiKeysDatabase'
         )
@@ -92,10 +100,7 @@ class ApiKeyCustomAuthorizer(CfnAuthorizer):
                 f'aws:lambda:{scope.region}:{scope.account}:'
                 f'function:{self.authorizer_function.function_name}/invocations'
             ),
-            identity_source=[
-                '$request.header.ApiKey',
-                '$request.header.ApiSecret',
-            ],
+            identity_source=authorization_type.get_authorization_config()
         )
 
     @property

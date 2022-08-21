@@ -26,6 +26,5 @@ class AuthorizerLayer(LayerVersion):
     @staticmethod
     def runtimes() -> Optional[List[Runtime]]:
         return [
-            Runtime.PYTHON_3_8,
-            Runtime.PYTHON_3_9
+            Runtime.PYTHON_3_8
         ]

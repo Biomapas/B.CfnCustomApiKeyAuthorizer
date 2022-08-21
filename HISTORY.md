@@ -1,5 +1,10 @@
 # Release history
 
+### 2.1.0
+
+* Add ability to specify what type of authentication strategy to use.
+  Support for both `ApiKey` / `ApiSecret` and `Authorization` headers.
+
 ### 2.0.1
 
 * Dollar sign excluded from API secret.
