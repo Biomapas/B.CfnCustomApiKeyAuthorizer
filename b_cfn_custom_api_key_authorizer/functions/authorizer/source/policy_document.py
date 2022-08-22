@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class PolicyDocument:
@@ -11,7 +11,7 @@ class PolicyDocument:
             region: str,
             account_id: str,
             api_id: str,
-            api_key: str
+            api_key: Optional[str] = None
     ) -> None:
         self.region = region
         self.account_id = account_id

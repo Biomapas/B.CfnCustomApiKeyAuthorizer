@@ -92,11 +92,16 @@ Create api key custom authorizer:
 
 ```python
 from b_cfn_custom_api_key_authorizer.custom_authorizer import ApiKeyCustomAuthorizer
+from b_cfn_custom_api_key_authorizer.authorization_type import AuthorizationType
 
 authorizer = ApiKeyCustomAuthorizer(
     scope=Stack(...),
     resource_name_prefix='MyCool',
     api=api,
+    # If you specify this, your API will look for "ApiKey" and "ApiSecret" headers in your request.
+    # authorization_type=AuthorizationType.API_KEY_AND_SECRET_HEADERS
+    # If you specify this, your API will treat your request with basic auth in mind ("Authorization" header).
+    # authorization_type=AuthorizationType.AUTHORIZATION_HEADER
 )
 ```
 

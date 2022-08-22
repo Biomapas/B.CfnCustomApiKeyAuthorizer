@@ -55,6 +55,38 @@ def test_FUNCTION_authorizer_WITH_valid_basic_auth_EXPECT_request_allowed_to_pas
     assert data == 'Hello World!'
 
 
+def test_FUNCTION_authorizer_WITH_invalid_basic_auth_EXPECT_request_denied(api_keys) -> None:
+    """
+    Tests whether the authorizer denies request if invalid basic auth header is given.
+
+    :return: No return.
+    """
+    response = urllib3.PoolManager().request(
+        method='GET',
+        url=MainStack.get_output(MainStack.API_ENDPOINT2),
+        headers={
+            'Authorization': 'Basic aaabbbccc111222333'
+        }
+    )
+
+    assert response.status == 403
+
+
+def test_FUNCTION_authorizer_WITH_basic_auth_invalid_credentials_EXPECT_request_denied(api_keys) -> None:
+    """
+    Tests whether the authorizer denies request if basic auth header with invalid credentials is given.
+
+    :return: No return.
+    """
+    response = urllib3.PoolManager().request(
+        method='GET',
+        url=MainStack.get_output(MainStack.API_ENDPOINT2),
+        headers=urllib3.make_headers(basic_auth=f'123:abc')
+    )
+
+    assert response.status == 403
+
+
 def test_authorizer_with_no_key_secret() -> None:
     """
     Tests whether the authorizer denies the request to pass through, if the

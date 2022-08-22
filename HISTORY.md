@@ -1,5 +1,10 @@
 # Release history
 
+### 2.1.1
+
+* Add more integration tests.
+* Update README documentation.
+
 ### 2.1.0
 
 * Add ability to specify what type of authentication strategy to use.
