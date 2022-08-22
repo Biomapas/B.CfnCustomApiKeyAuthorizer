@@ -35,7 +35,9 @@ setup(
         'aws-cdk.cloud-assembly-schema>=1.90.0,<2.0.0',
         'aws-cdk.region-info>=1.90.0,<2.0.0',
         'aws-cdk.aws-cognito>=1.90.0,<2.0.0',
-        'aws-cdk.aws-dynamodb>=1.90.0,<2.0.0'
+        'aws-cdk.aws-dynamodb>=1.90.0,<2.0.0',
+        'aws-cdk.cx-api>=1.90.0,<2.0.0',
+        'aws-cdk.region-info>=1.90.0,<2.0.0'
     ],
     keywords='AWS Cognito api_key Authorizer',
     url='https://github.com/biomapas/B.CfnCustomApiKeyAuthorizer.git',
