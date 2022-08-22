@@ -20,6 +20,7 @@ jobs:
         run: |
           npm install -g aws-cdk@1.x
           pip install . --upgrade
+          pip install -r b_cfn_custom_api_key_authorizer_test/requirements.txt
 
           pip list
           docker --version
