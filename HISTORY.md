@@ -1,5 +1,9 @@
 # Release history
 
+### 2.2.0
+
+* Remove unnecessary dependencies.
+
 ### 2.1.1
 
 * Add more integration tests.

@@ -1,0 +1,6 @@
+pytest
+pytest-cov
+b-continuous-subprocess
+b-aws-cdk-parallel
+b-aws-testing-framework
+b-cfn-lambda-integration
