@@ -1,5 +1,9 @@
 # Release history
 
+### 2.3.0
+
+* Update of `authorizer` function. Removing of sensitive information form lambda event implemented. 
+
 ### 2.2.0
 
 * Remove unnecessary dependencies.
