@@ -20,8 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 def handler(event, context):
-    logger.info(f'Received event:\n{json.dumps(event)}.')
-
     document = PolicyDocument(
         region=os.environ['AWS_REGION'],
         account_id=os.environ['AWS_ACCOUNT'],
@@ -32,6 +30,8 @@ def handler(event, context):
     try:
         # Extract api key and secret from lambda event in various strategies.
         api_key, api_secret = __extract_api_key_secret_from_event(event)
+
+        logger.info(f'Received event:\n{json.dumps(event)}.')
 
         # Since ApiKey was extracted, set it in the policy document:
         document.api_key = api_key
@@ -50,17 +50,20 @@ def handler(event, context):
 
 
 def __extract_api_key_secret_from_event(event: Dict[str, Any]) -> Tuple[Optional[str], Optional[str]]:
+    # Remove Identity Source from the event as it contains sensitive information.
+    event.pop('identitySource', None)
+
     # Firstly, try to extract from ApiKey & ApiSecret headers.
     # (identity_source=['$request.header.ApiKey', '$request.header.ApiSecret']).
-    api_key: Optional[str] = event.get('headers', {}).get('apikey')
-    api_secret: Optional[str] = event.get('headers', {}).get('apisecret')
+    api_key: Optional[str] = event.get('headers', {}).pop('apikey', None)
+    api_secret: Optional[str] = event.get('headers', {}).pop('apisecret', None)
 
     if api_key and api_secret:
         return api_key, api_secret
 
     # Secondly, try to extract from basic auth (which is way more standard).
     # (identity_source=['$request.header.Authorization']).
-    basic_auth: Optional[str] = event.get('headers', {}).get('authorization')
+    basic_auth: Optional[str] = event.get('headers', {}).pop('authorization', None)
     if basic_auth:
         basic_auth = basic_auth.replace('Basic ', '')
 
