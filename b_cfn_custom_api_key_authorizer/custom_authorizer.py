@@ -1,8 +1,8 @@
 from typing import Optional
 
+from aws_cdk import Stack
 from aws_cdk.aws_apigatewayv2 import CfnAuthorizer, CfnApi
 from aws_cdk.aws_dynamodb import Table
-from aws_cdk.core import Stack
 
 from b_cfn_custom_api_key_authorizer.api_keys_database import ApiKeysDatabase
 from b_cfn_custom_api_key_authorizer.authorization_type import AuthorizationType

@@ -1,7 +1,7 @@
 from typing import Optional, List
 
+from aws_cdk import Stack
 from aws_cdk.aws_lambda import Runtime, LayerVersion, AssetCode
-from aws_cdk.core import Stack
 
 
 class AuthorizerLayer(LayerVersion):
@@ -26,5 +26,7 @@ class AuthorizerLayer(LayerVersion):
     @staticmethod
     def runtimes() -> Optional[List[Runtime]]:
         return [
-            Runtime.PYTHON_3_8
+            Runtime.PYTHON_3_8,
+            Runtime.PYTHON_3_9,
+            Runtime.PYTHON_3_10,
         ]

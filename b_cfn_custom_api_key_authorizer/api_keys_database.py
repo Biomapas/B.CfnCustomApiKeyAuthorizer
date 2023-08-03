@@ -1,7 +1,7 @@
 from abc import ABC
 
+from aws_cdk import Stack, RemovalPolicy
 from aws_cdk.aws_dynamodb import Attribute, Table, BillingMode, AttributeType, TableEncryption
-from aws_cdk.core import Stack, RemovalPolicy
 
 
 class ApiKeysDatabase(Table, ABC):

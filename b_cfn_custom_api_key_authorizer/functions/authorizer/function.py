@@ -1,6 +1,6 @@
+from aws_cdk import Stack
 from aws_cdk.aws_apigatewayv2 import CfnApi
 from aws_cdk.aws_lambda import Code, CfnPermission
-from aws_cdk.core import Stack
 
 from b_cfn_custom_api_key_authorizer.api_keys_database import ApiKeysDatabase
 from b_cfn_custom_api_key_authorizer.functions.base_function import BaseFunction

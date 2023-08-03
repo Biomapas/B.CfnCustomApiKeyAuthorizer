@@ -1,5 +1,5 @@
-from aws_cdk.core import Construct
 from b_aws_testing_framework.tools.cdk_testing.testing_stack import TestingStack
+from constructs import Construct
 
 from b_cfn_custom_api_key_authorizer_test.integration.infrastructure.api_key_secret_auth_endpoint_stack import ApiKeySecretAuthEndpointStack
 from b_cfn_custom_api_key_authorizer_test.integration.infrastructure.authorized_api_stack import AuthorizedApiStack

@@ -1,9 +1,9 @@
 from abc import abstractmethod, ABC
 
+from aws_cdk import Duration, Stack
 from aws_cdk.aws_iam import PolicyStatement
 from aws_cdk.aws_lambda import Function, Code, Runtime
 from aws_cdk.aws_logs import RetentionDays
-from aws_cdk.core import Duration, Stack
 
 from b_cfn_custom_api_key_authorizer.api_keys_database import ApiKeysDatabase
 from b_cfn_custom_api_key_authorizer_layer.authorizer_layer import AuthorizerLayer
