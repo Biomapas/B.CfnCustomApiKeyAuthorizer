@@ -1,6 +1,7 @@
+from aws_cdk import Stack
 from aws_cdk.aws_apigatewayv2 import CfnApi, CfnStage
-from aws_cdk.core import Construct, Stack
 from b_aws_testing_framework.tools.cdk_testing.testing_stack import TestingStack
+from constructs import Construct
 
 
 class AuthorizedApiStack(Stack):

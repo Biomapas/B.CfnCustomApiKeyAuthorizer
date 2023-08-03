@@ -12,7 +12,7 @@ DO_NOT_DESTROY_INFRASTRUCTURE = int(os.environ.get('DO_NOT_DESTROY_INFRASTRUCTUR
 
 CDK_PATH = f'{os.path.dirname(os.path.abspath(__file__))}'
 MANAGER = TestingManager(Credentials(), CdkToolConfig(CDK_PATH, destroy_before_preparing=False))
-if GLOBAL_PREFIX: MANAGER.set_global_prefix(f'B{GLOBAL_PREFIX[:10]}')
+if GLOBAL_PREFIX: MANAGER.set_global_prefix(GLOBAL_PREFIX[:10])
 
 # Import all fixtures.
 # noinspection PyUnresolvedReferences
